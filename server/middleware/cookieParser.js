@@ -7,11 +7,11 @@ const parseCookies = (req, res, next) => {
       cookieObj[str[0]] = str[1]
     }
     req.cookies = cookieObj;
-    return next()
+    next()
   } else {
-    return next()
+    req.cookies = {};
+    next()
   }
-  res.end()
 };
 
 module.exports = parseCookies;

@@ -112,7 +112,6 @@ app.post('/login', (req, res) => {
     }
   })
   .then ((data) => {
-    console.log('DATAAA', data)
     if (data === true) {
       res.redirect('/')
     } else {

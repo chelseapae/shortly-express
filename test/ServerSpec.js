@@ -41,7 +41,8 @@ describe('', function() {
     db = mysql.createConnection({
       host: 'localhost',
       user: 'root',
-      database: 'shortly'
+      database: 'shortly',
+      password: ''
     });
 
     /**************************************************************************************/
@@ -160,6 +161,7 @@ describe('', function() {
       request(options, function(error, res, body) {
         if (error) { return done(error); }
         var queryString = 'SELECT password FROM users where username = "Samantha"';
+
         db.query(queryString, function(err, rows) {
           if (err) { return done (err); }
           var user = rows[0];
@@ -277,7 +279,7 @@ describe('', function() {
     });
   });
 
-  xdescribe('Sessions Schema:', function() {
+  describe('Sessions Schema:', function() {
     it('contains a sessions table', function(done) {
       var queryString = 'SELECT * FROM sessions';
       db.query(queryString, function(err, results) {

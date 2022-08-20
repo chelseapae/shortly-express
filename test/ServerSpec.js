@@ -277,6 +277,31 @@ describe('', function() {
         done();
       });
     });
+
+    /************************************************************/
+    //                   USER TEST RIGHT HERE
+    /************************************************************/
+    // it.only('assigns session to user on login through /login route', function(done) {
+    //   var options = {
+    //     'method': 'POST',
+    //     'uri': 'http://127.0.0.1:4568/login',
+    //     'json': {
+    //       'username': 'Samantha',
+    //       'password': 'Samantha'
+    //     }
+    //   };
+    //   var queryString = `
+    //   SELECT users.username FROM users, sessions
+    //   WHERE sessions.hash = ? AND users.id = sessions.userId
+    // `;
+    //   request(options, function(error, res, body) {
+    //     if (error) { return done(error); }
+    //     expect(res.headers.location).to.equal('/');
+    //     db.query(queryString, ADDMOREHERE)
+    //     done();
+    //   });
+    // })
+
   });
 
   describe('Sessions Schema:', function() {
@@ -570,9 +595,11 @@ describe('', function() {
         });
       });
     });
+
+
   });
 
-  xdescribe('Privileged Access:', function() {
+  describe('Privileged Access:', function() {
 
     it('Redirects to login page if a user tries to access the main page and is not signed in', function(done) {
       request('http://127.0.0.1:4568/', function(error, res, body) {

@@ -18,17 +18,17 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use(cookieParser);
 app.use(Auth.createSession);
 
-app.get('/',
+app.get('/', Auth.verifySession,
 (req, res) => {
   res.render('index');
 });
 
-app.get('/create',
+app.get('/create', Auth.verifySession,
 (req, res) => {
   res.render('index');
 });
 
-app.get('/links',
+app.get('/links', Auth.verifySession,
 (req, res, next) => {
   models.Links.getAll()
     .then(links => {
@@ -39,7 +39,7 @@ app.get('/links',
     });
 });
 
-app.post('/links',
+app.post('/links', Auth.verifySession,
 (req, res, next) => {
   var url = req.body.url;
   if (!models.Links.isValidUrl(url)) {
@@ -80,18 +80,25 @@ app.post('/links',
 /************************************************************/
 
 app.post('/signup', (req, res) => {
+  //sees if the username already exists
   models.Users.get({
     username: req.body.username
   })
     .then((data) => {
+      //if there is a user with that name
       if (data) {
         res.redirect('/signup')
+        //else create a user for them, and redirect them to index
       } else {
+        //creates user
         return models.Users.create({
           username: req.body.username,
           password: req.body.password
         })
           .then((data) => {
+            return models.Sessions.update({hash: req.session.hash}, {userId: data.insertId})
+          })
+          .then(() => {
             res.redirect('/')
           })
           .catch((err) => {
@@ -102,26 +109,47 @@ app.post('/signup', (req, res) => {
     })
 });
 
+app.get('/login', (req, res) => {
+  res.render('login')
+})
+
 app.post('/login', (req, res) => {
-  models.Users.get({
+  return models.Users.get({
     username: req.body.username
   })
   .then((data) => {
     if (!data) {
       res.redirect('/login')
+      // throw err;
     } else {
       return models.Users.compare(req.body.password, data.password, data.salt)
     }
   })
   .then ((data) => {
     if (data === true) {
-      res.redirect('/')
+      return models.Sessions.update({hash: req.session.hash}, {userId: data.insertId})
+      .then(() => {
+        res.redirect('/')
+      })
     } else {
       res.redirect('/login')
     }
     res.end()
   })
+  // .catch ((err) => {
+  //   res.redirect('/login')
+  //   throw err;
+  // })
 });
+
+app.get('/logout', (req, res) => {
+  return models.Sessions.delete({userId: req.session.userId})
+  .then(() => {
+    res.clearCookie('shortlyid');
+    res.redirect('/login')
+    res.end();
+  })
+})
 
 /************************************************************/
 // Handle the code parameter route last - if all other routes fail

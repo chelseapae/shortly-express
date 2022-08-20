@@ -148,6 +148,28 @@ describe('', function() {
       });
     });
 
+    it('shouldn\'t store other usernames into users table after signup besides the username used', function(done) {
+      var options = {
+        'method': 'POST',
+        'uri': 'http://127.0.0.1:4568/signup',
+        'json': {
+          'username': 'Samantha',
+          'password': 'Samantha'
+        }
+      };
+
+      request(options, function(error, res, body) {
+        var queryString = 'SELECT * FROM users where username = "Samantha"';
+        db.query(queryString, function(err, rows) {
+          if (err) { done(err); }
+          var user = rows[0];
+          expect(user).to.exist;
+          expect(user.username).to.not.equal('');
+          done();
+        });
+      });
+    });
+
     it('does not store the user\'s original text password', function(done) {
       var options = {
         'method': 'POST',
@@ -244,6 +266,18 @@ describe('', function() {
       });
     });
 
+    it('Doesn\'t log in non-existing users', function(done) {
+      var options = {
+        'method': 'POST',
+        'uri': 'http://127.0.0.1:4568/login',
+        'json': {
+          'username': 'Fred',
+          'password': 'Fred'
+        }
+      }
+      done()
+    });
+
     it('Users that do not exist are kept on login page', function(done) {
       var options = {
         'method': 'POST',
@@ -281,26 +315,31 @@ describe('', function() {
     /************************************************************/
     //                   USER TEST RIGHT HERE
     /************************************************************/
-    // it.only('assigns session to user on login through /login route', function(done) {
-    //   var options = {
-    //     'method': 'POST',
-    //     'uri': 'http://127.0.0.1:4568/login',
-    //     'json': {
-    //       'username': 'Samantha',
-    //       'password': 'Samantha'
-    //     }
-    //   };
-    //   var queryString = `
-    //   SELECT users.username FROM users, sessions
-    //   WHERE sessions.hash = ? AND users.id = sessions.userId
-    // `;
-    //   request(options, function(error, res, body) {
-    //     if (error) { return done(error); }
-    //     expect(res.headers.location).to.equal('/');
-    //     db.query(queryString, ADDMOREHERE)
-    //     done();
-    //   });
-    // })
+    it('assigns session to user on login through /login route', function(done) {
+      var options = {
+        'method': 'POST',
+        'uri': 'http://127.0.0.1:4568/login',
+        'json': {
+          'username': 'Samantha',
+          'password': 'Samantha'
+        }
+      };
+      var queryString = `SELECT users.username FROM users, sessions WHERE sessions.hash = ? AND users.id = sessions.userId`;
+      request(options, function(error, res, body) {
+
+        var resBody = res.request.body
+        var useable = JSON.parse(resBody).username
+
+        if (error) { return done(error); } else {
+        db.query(queryString, [''], function(err, results) {
+          if (err) { return done(err); } else {
+            expect(useable).to.deep.equal('Samantha')
+            done()
+          }
+        })
+      }
+      })
+      })
 
   });
 
